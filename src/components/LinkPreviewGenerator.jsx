@@ -228,37 +228,40 @@ const LinkPreviewGenerator = () => {
   };
 
   // Fungsi untuk membuat link shareable dengan URL gambar dari ImgBB
-  const generateShareableLink = () => {
-    if (!previewData) return '';
-    
-    const imageToUse = useCustomImage && uploadedImageUrl ? uploadedImageUrl : previewData.image;
-    
-    const baseUrl = window.location.origin + window.location.pathname;
-    const params = new URLSearchParams();
-    
-    params.append('url', encodeURIComponent(previewData.url));
-    params.append('image', encodeURIComponent(imageToUse));
-    params.append('title', encodeURIComponent(previewData.title));
-    params.append('desc', encodeURIComponent(previewData.description));
-    
-    return `${baseUrl}?${params.toString()}`;
-  };
+// Di LinkPreviewGenerator.jsx
+const generateShareableLink = () => {
+  if (!previewData) return '';
+  
+  const imageToUse = useCustomImage && uploadedImageUrl ? uploadedImageUrl : previewData.image;
+  
+  // GANTI: Gunakan endpoint API, bukan halaman utama
+  const baseUrl = window.location.origin + '/api/ssrOG'; // PENTING: panggil API langsung
+  
+  const params = new URLSearchParams();
+  
+  params.append('url', encodeURIComponent(previewData.url));
+  params.append('image', encodeURIComponent(imageToUse));
+  params.append('title', encodeURIComponent(previewData.title || 'Produk Shopee'));
+  params.append('desc', encodeURIComponent(previewData.description || 'Klik untuk lihat produk'));
+  
+  return `${baseUrl}?${params.toString()}`;
+};
 
   // Fungsi untuk membuat link dan menyalinnya
   const createAndCopyShareableLink = () => {
-    if (!previewData) {
-      alert('Preview data belum tersedia');
-      return;
-    }
-    
-    const link = generateShareableLink();
-    setShareableLink(link);
-    navigator.clipboard.writeText(link).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      alert('✅ Link shareable disalin!\n\nGunakan link ini untuk posting di Facebook.\n\nCatatan: Aplikasi harus sudah di-hosting di server publik (bukan localhost) agar gambar terbaca crawler Facebook.');
-    });
-  };
+  if (!previewData) {
+    alert('Preview data belum tersedia');
+    return;
+  }
+  
+  const link = generateShareableLink();
+  setShareableLink(link);
+  navigator.clipboard.writeText(link).then(() => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    alert('✅ Link shareable disalin!\n\nLink ini sudah mengarah ke API server.\n\nGunakan link ini untuk posting di Facebook.');
+  });
+};
 
   const generatePostText = () => {
     return `${caption}\n\n${url}`;
