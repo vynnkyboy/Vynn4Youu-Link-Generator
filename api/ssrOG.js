@@ -25,8 +25,8 @@ export default async function handler(req, res) {
     
     // Data untuk Open Graph tags
     const ogData = {
-      title: productTitle ? decodeURIComponent(productTitle) : 'Produk Shopee',
-      description: productDesc ? decodeURIComponent(productDesc) : 'Lihat produk menarik ini di Shopee',
+      title: productTitle ? decodeURIComponent(productTitle) : '',
+      description: productDesc ? decodeURIComponent(productDesc) : '', // Kosongkan deskripsi jika tidak perlu
       image: imageUrl ? decodeURIComponent(imageUrl) : 'https://via.placeholder.com/1200x630?text=Produk+Shopee',
       url: productUrl ? decodeURIComponent(productUrl) : `https://${req.headers.host || 'localhost'}`,
     };
@@ -44,10 +44,13 @@ export default async function handler(req, res) {
       let html = fs.readFileSync(htmlPath, 'utf8');
       
       // Ganti placeholder di HTML
+// Di bagian setelah membaca file HTML, ganti placeholder dengan ini:
       html = html.replace(/__OG_TITLE__/g, ogData.title);
       html = html.replace(/__OG_DESCRIPTION__/g, ogData.description);
       html = html.replace(/__OG_IMAGE__/g, ogData.image);
       html = html.replace(/__OG_URL__/g, ogData.url);
+      html = html.replace(/__OG_SITE_NAME__/g, ''); // Kosongkan site name
+      html = html.replace(/__OG_IMAGE_ALT__/g, ogData.title); // Alt text untuk gambar
       
       // Set header untuk crawler
       res.setHeader('Content-Type', 'text/html');
