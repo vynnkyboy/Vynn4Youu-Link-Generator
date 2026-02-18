@@ -9,11 +9,7 @@
       "destination": "/$1.$2"
     },
     {
-      "source": "/[^.]+",
-      "destination": "/api/ssrOG"
-    },
-    {
-      "source": "/",
+      "source": "/((?!api/).*)",
       "destination": "/api/ssrOG"
     }
   ],
