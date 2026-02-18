@@ -1,31 +1,46 @@
-// api/ssrOG.js - ULTIMATE VERSION
-// Menghapus SEMUA kemungkinan teks yang muncul di Facebook
+// api/ssrOG.js - Final Version
+// Serverless function untuk menangani crawler Facebook dan redirect ke Shopee
 
 export default async function handler(req, res) {
   try {
-    // Ambil parameter
-    const { url: productUrl, image: imageUrl } = req.query;
+    // ========== 1. AMBIL PARAMETER DARI URL ==========
+    const { 
+      url: productUrl,      // URL Shopee tujuan
+      image: imageUrl,       // URL gambar dari ImgBB
+      title: productTitle    // Judul produk (opsional)
+    } = req.query;
     
-    // Deteksi crawler
+    // ========== 2. DETEKSI CRAWLER FACEBOOK ==========
     const userAgent = req.headers['user-agent'] || '';
-    const isFacebookCrawler = userAgent.includes('facebookexternalhit') || 
-                              userAgent.includes('Facebot');
+    const isFacebookCrawler = 
+      userAgent.includes('facebookexternalhit') || 
+      userAgent.includes('Facebot') || 
+      userAgent.includes('Twitterbot') ||
+      userAgent.includes('LinkedInBot') ||
+      userAgent.includes('Slackbot') ||
+      userAgent.includes('Pinterestbot') ||
+      userAgent.includes('Googlebot');
     
-    // Validasi
+    // ========== 3. VALIDASI DATA ==========
     if (!imageUrl) {
-      return res.status(400).send('Image parameter required');
+      return res.status(400).json({ error: 'Parameter image wajib diisi' });
     }
     
+    // Decode URL parameter
     const decodedImageUrl = decodeURIComponent(imageUrl);
     const decodedProductUrl = productUrl ? decodeURIComponent(productUrl) : '';
+    const decodedTitle = productTitle ? decodeURIComponent(productTitle) : ' ';
     
-    // ========== UNTUK CRAWLER FACEBOOK ==========
+    // ========== 4. HANDLER UNTUK CRAWLER FACEBOOK ==========
     if (isFacebookCrawler) {
-      // HTML dengan pendekatan berbeda - menggunakan comment untuk menyembunyikan title
+      // HTML SUPER MINIMALIS - HANYA META TAGS
+      // Tidak ada konten visible, tidak ada teks
       const html = `<!DOCTYPE html>
 <html>
 <head>
-  <!-- Meta tags untuk Facebook -->
+  <meta charset="utf-8">
+  
+  <!-- Open Graph Tags - Minimalis -->
   <meta property="og:title" content=" " />
   <meta property="og:image" content="${decodedImageUrl}" />
   <meta property="og:url" content="${decodedProductUrl}" />
@@ -39,29 +54,18 @@ export default async function handler(req, res) {
   <meta name="twitter:description" content=" " />
   <meta name="twitter:image" content="${decodedImageUrl}" />
   
-  <!-- Meta tag lain yang mungkin dibaca Facebook -->
+  <!-- Meta tag lain yang mungkin dibaca crawler -->
   <meta name="title" content=" " />
   <meta name="description" content=" " />
   <link rel="canonical" href="${decodedProductUrl}" />
   
-  <!-- Title tag - disembunyikan dengan CSS -->
+  <!-- Title tag - dikosongkan -->
   <title> </title>
   
   <!-- CSS untuk memastikan tidak ada yang tampil -->
   <style>
     /* Sembunyikan absolut semua konten */
-    html, body, div, span, applet, object, iframe,
-    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-    a, abbr, acronym, address, big, cite, code,
-    del, dfn, em, img, ins, kbd, q, s, samp,
-    small, strike, strong, sub, sup, tt, var,
-    b, u, i, center, dl, dt, dd, ol, ul, li,
-    fieldset, form, label, legend,
-    table, caption, tbody, tfoot, thead, tr, th, td,
-    article, aside, canvas, details, embed, 
-    figure, figcaption, footer, header, hgroup, 
-    menu, nav, output, ruby, section, summary,
-    time, mark, audio, video {
+    * {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
@@ -72,7 +76,6 @@ export default async function handler(req, res) {
         left: -9999px !important;
     }
     
-    /* Pastikan body benar-benar kosong */
     body {
         display: none !important;
         background: transparent !important;
@@ -80,13 +83,9 @@ export default async function handler(req, res) {
         padding: 0 !important;
     }
   </style>
-  
-  <!-- Tidak ada judul di tab browser -->
-  <title> </title>
 </head>
 <body>
   <!-- Halaman benar-benar kosong -->
-  <!-- Bahkan tidak ada spasi atau newline yang tidak perlu -->
 </body>
 </html>`;
       
@@ -100,20 +99,39 @@ export default async function handler(req, res) {
       return res.status(200).send(html);
     } 
     
-    // ========== UNTUK PENGGUNA BIASA ==========
+    // ========== 5. HANDLER UNTUK PENGGUNA BIASA ==========
     else {
+      // Validasi URL produk
       if (!decodedProductUrl) {
-        return res.redirect('/');
+        return res.status(400).send(`
+          <html>
+            <body style="font-family: sans-serif; padding: 20px;">
+              <h2>Link Tidak Valid</h2>
+              <p>URL produk tidak ditemukan. Silakan buat link ulang.</p>
+              <p><a href="/">Kembali ke Generator</a></p>
+            </body>
+          </html>
+        `);
       }
       
-      // Redirect ke Shopee
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      // Redirect 302 ke Shopee
       res.setHeader('Location', decodedProductUrl);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       return res.status(302).end();
     }
     
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('Error');
+    // ========== 6. HANDLER ERROR ==========
+    console.error('SSR OG Error:', error);
+    
+    res.status(500).send(`
+      <html>
+        <body style="font-family: sans-serif; padding: 20px;">
+          <h2>Terjadi Kesalahan</h2>
+          <p>${error.message}</p>
+          <p><a href="/">Kembali ke Generator</a></p>
+        </body>
+      </html>
+    `);
   }
 }

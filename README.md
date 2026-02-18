@@ -1,16 +1,92 @@
-# React + Vite
+# Facebook Link Preview Generator - Serverless Version
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Serverless function untuk menghasilkan preview gambar custom di Facebook dengan redirect ke Shopee.
 
-Currently, two official plugins are available:
+## Cara Penggunaan
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Buat link dengan format:
 
-## React Compiler
+https://domain-anda.vercel.app/?image=URL_GAMBAR&url=URL_SHOPEE&title=JUDUL
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+2. Parameter:
+- `image`: URL gambar dari ImgBB (wajib)
+- `url`: URL Shopee tujuan (wajib)
+- `title`: Judul produk (opsional)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Posting link di Facebook:
+- Crawler Facebook akan melihat gambar
+- Pengguna yang klik akan redirect ke Shopee
+
+## Deploy
+
+```bash
+vercel --prod
+
+
+---
+
+## 📁 Struktur Folder Final
+
+Setelah semua file dibuat, struktur folder Anda harus seperti ini:
+Vynn4Youu-Link-Generator/
+├── api/
+│ └── ssrOG.js
+├── vercel.json
+├── package.json
+├── .gitignore
+└── README.md (opsional)
+text
+
+
+## 🚀 Langkah Deploy
+
+### **1. Push ke GitHub**
+```bash
+git add .
+git commit -m "Update to serverless only version"
+git push origin main
+
+2. Deploy ke Vercel
+bash
+
+vercel --prod --force
+
+3. Testing
+bash
+
+# Test dengan crawler Facebook (simulasi)
+curl -A "facebookexternalhit/1.1" "https://project-anda.vercel.app/?image=https://i.ibb.co/gambar.jpg&url=https://shopee.co.id/produk"
+
+# Test dengan browser biasa (harus redirect)
+curl "https://project-anda.vercel.app/?image=https://i.ibb.co/gambar.jpg&url=https://shopee.co.id/produk"
+
+✅ Verifikasi di Facebook Debugger
+
+    Buka https://developers.facebook.com/tools/debug/
+
+    Masukkan link Anda: https://project-anda.vercel.app/?image=...&url=...
+
+    Klik Debug
+
+    Pastikan:
+
+        og:title = (kosong)
+
+        og:image = URL gambar Anda
+
+        og:url = URL Shopee
+
+        Tidak ada description
+
+    Klik "Scrape Again" untuk refresh cache
+
+⚠️ Catatan Penting
+
+    Tidak perlu build karena ini serverless function
+
+    Tidak perlu folder src atau dist
+
+    Pastikan API key ImgBB sudah benar di aplikasi frontend (jika masih menggunakan generator)
+
+    Cache Facebook mungkin perlu 5-10 menit untuk update
