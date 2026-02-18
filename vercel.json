@@ -1,8 +1,39 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot|ico|xml|txt|pdf|zip|rar|json|webmanifest))$", "continue": true },
-    { "source": "/[^.]+", "destination": "/api/ssrOG" },
-    { "source": "/", "destination": "/api/ssrOG" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)\\.(js|css|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot|ico|xml|txt|pdf|zip|rar|json|webmanifest)$",
+      "destination": "/$1.$2"
+    },
+    {
+      "source": "/[^.]+",
+      "destination": "/api/ssrOG"
+    },
+    {
+      "source": "/",
+      "destination": "/api/ssrOG"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
   ]
 }
